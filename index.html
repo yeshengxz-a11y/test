@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🐾 小狗外卖饭盆</title>
-    <!-- Load Tailwind CSS CDN -->
+    <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* Custom styles for the Puppy Theme */
@@ -148,17 +148,16 @@
 
     </div>
 
-    <!-- Firebase SDKs and Logic -->
+    <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, query, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        // setLogLevel is not imported as it's not strictly necessary for deployment
+        import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        
+        // setLogLevel('debug'); // Uncomment to see Firebase debug logs
 
-        // --- GLOBAL VARIABLES (Canvas Environment Placeholders) ---
-        // NOTE: When deploying to Vercel/GitHub, you MUST manually replace __app_id, __firebase_config,
-        // and __initial_auth_token with actual values or environment variables.
-        // For local testing, default values are used.
+        // --- GLOBAL VARIABLES (Provided by Canvas Environment) ---
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-takeout-app';
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
@@ -168,8 +167,8 @@
 
         // --- FIREBASE INITIALIZATION ---
         let app, db, auth, userId = null;
-        let allTakeouts = []; 
-        let filteredTakeouts = []; 
+        let allTakeouts = []; // Array to store all fetched data
+        let filteredTakeouts = []; // Array to store filtered data
 
         // DOM Elements
         const addForm = document.getElementById('add-takeout-form');
@@ -319,7 +318,6 @@
         const setupFirestoreListener = () => {
             if (!db || !userId) return;
 
-            // Data storage path: /artifacts/{appId}/users/{userId}/takeout_log
             const takeoutRef = collection(db, `/artifacts/${appId}/users/${userId}/takeout_log`);
             const q = query(takeoutRef); 
 
@@ -399,7 +397,7 @@
                 name: nameInput.value.trim(),
                 price: parseFloat(priceInput.value),
                 category: categoryInput.value.trim(),
-                timestamp: new Date(), 
+                timestamp: new Date(), // Use JS Date for Firestore Timestamp
             };
 
             const takeoutRef = collection(db, `/artifacts/${appId}/users/${userId}/takeout_log`);
@@ -413,6 +411,7 @@
                 categoryInput.value = '';
             } catch (error) {
                 console.error("Error adding document: ", error);
+                // Optionally show a custom modal/message box for the user
             }
         });
 
@@ -424,17 +423,21 @@
         randomPickBtn.addEventListener('click', () => {
             if (filteredTakeouts.length === 0) {
                 randomResult.textContent = '😭 列表中没有零食可供选择！';
+                // Use a standard error color
                 randomResult.classList.remove('bg-amber-50'); 
                 randomResult.classList.add('bg-red-100');
                 return;
             }
             
+            // Randomly select one item from the currently FILTERED list
             const randomIndex = Math.floor(Math.random() * filteredTakeouts.length);
             const selectedItem = filteredTakeouts[randomIndex];
 
+            // Reset background to success color
             randomResult.classList.remove('bg-red-100');
             randomResult.classList.add('bg-amber-50');
 
+            // Simple animation effect (optional)
             randomResult.textContent = '抽取中...';
             randomPickBtn.disabled = true;
 
