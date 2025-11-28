@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🐾 小狗外卖饭盆</title>
+    <!-- Load Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for the Puppy Theme */
+        :root {
+            --primary-color: #42A5F5; /* Playful Blue (Dog Collar/Action) */
+            --secondary-color: #FFA726; /* Warm Orange/Tan (Snacks/Highlight) */
+            --bg-color: #FFFCF7; /* Soft Cream Background */
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+        }
+        /* Card styles: More rounded corners and subtle border */
+        .card {
+            background-color: white;
+            border-radius: 1.5rem; 
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            padding: 1.5rem;
+            transition: transform 0.2s;
+            border: 2px solid #EEE0C3; /* Light tan border */
+        }
+        .card:hover {
+            box-shadow: 0 15px 25px -5px rgba(0, 0, 0, 0.15), 0 6px 10px -4px rgba(0, 0, 0, 0.08);
+        }
+        /* Primary Button: Pill shape and soft shadow */
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 9999px; 
+            font-weight: 700;
+            transition: background-color 0.2s, transform 0.1s;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .btn-primary:hover {
+            background-color: #1E88E5; /* Darker Blue */
+            transform: translateY(-1px);
+        }
+        /* Input fields */
+        input[type="text"], input[type="number"], select {
+            padding: 0.75rem;
+            border: 1px solid #D1D5DB;
+            border-radius: 0.75rem;
+            width: 100%;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            background-color: #FEFEFA; /* Slight off-white */
+        }
+        input:focus, select:focus {
+            border-color: var(--secondary-color); /* Focus uses the warm orange color */
+            box-shadow: 0 0 0 3px rgba(255, 167, 38, 0.4); 
+            outline: none;
+        }
+        /* Override category color for theme consistency */
+        .text-indigo-600 {
+            color: var(--secondary-color) !important;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-4xl mx-auto space-y-8">
+        <h1 class="text-4xl font-extrabold text-gray-900 text-center mb-10">🐾 小狗外卖饭盆 🐶</h1>
+        
+        <!-- Section 1: Add New Entry -->
+        <div class="card">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4 border-b pb-2">🦴 记录新的零食</h2>
+            <form id="add-takeout-form" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                <div class="md:col-span-1">
+                    <label for="takeout-name" class="block text-sm font-medium text-gray-700 mb-1">零食名称</label>
+                    <input type="text" id="takeout-name" placeholder="如: 鸡肉干" required>
+                </div>
+                <div class="md:col-span-1">
+                    <label for="takeout-price" class="block text-sm font-medium text-gray-700 mb-1">价格 (元)</label>
+                    <input type="number" id="takeout-price" placeholder="如: 18.5" step="0.01" required>
+                </div>
+                <div class="md:col-span-1">
+                    <label for="takeout-category" class="block text-sm font-medium text-gray-700 mb-1">种类/口味</label>
+                    <input type="text" id="takeout-category" placeholder="如: 鸡肉, 骨头, 面食" required>
+                </div>
+                <div class="md:col-span-1">
+                    <button type="submit" class="btn-primary w-full">💾 存入饭盆</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Section 2: Filters and Random Pick -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Filtering Controls -->
+            <div class="card lg:col-span-2 space-y-4">
+                <h2 class="text-2xl font-semibold text-gray-800 border-b pb-2">🔍 筛选想吃的</h2>
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <div class="flex-1">
+                        <label for="price-filter" class="block text-sm font-medium text-gray-700 mb-1">价格筛选 (推荐 20 元左右)</label>
+                        <select id="price-filter">
+                            <option value="all">不限价格</option>
+                            <option value="around20">≈ 20 元 (15-25元)</option>
+                            <option value="cheap">≤ 15 元 (便宜)</option>
+                            <option value="expensive">≥ 25 元 (稍贵)</option>
+                        </select>
+                    </div>
+                    <div class="flex-1">
+                        <label for="category-filter" class="block text-sm font-medium text-gray-700 mb-1">种类筛选 (输入类别)</label>
+                        <select id="category-filter">
+                            <option value="all">所有种类</option>
+                        </select>
+                    </div>
+                </div>
+                <p id="filter-status" class="text-sm text-gray-500 pt-2">共找到 <span id="item-count" class="font-bold text-gray-700">0</span> 种零食。</p>
+            </div>
+
+            <!-- Random Selection -->
+            <div class="card lg:col-span-1 flex flex-col justify-between items-center text-center p-6 space-y-4 bg-amber-50">
+                <h2 class="text-2xl font-semibold text-gray-800 border-b pb-2 w-full">今天吃哪个？</h2>
+                <!-- Button uses the secondary color for the theme -->
+                <button id="random-pick-btn" class="btn-primary w-full bg-[#FFA726] hover:bg-[#FF8A00]">🐕 随机抽选</button>
+                <div id="random-result" class="text-xl font-bold text-gray-800 min-h-[3rem] w-full p-2 border-2 border-dashed border-amber-200 rounded-lg flex items-center justify-center bg-amber-50">
+                    点击按钮抽取...
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 3: Takeout Log Display -->
+        <div class="card">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4 border-b pb-2">📋 历史零食记录</h2>
+            <div id="takeout-list" class="space-y-3">
+                <!-- Records will be injected here -->
+                <p class="text-gray-500 text-center py-4" id="loading-indicator">
+                    正在加载零食数据...
+                </p>
+                <p class="text-gray-500 text-center py-4 hidden" id="no-data-message">
+                    您还没有记录任何零食，快去添加一条吧！
+                </p>
+            </div>
+        </div>
+
+        <!-- Debug/User ID -->
+        <div class="text-xs text-gray-400 text-center pt-4">
+            <p>应用 ID: <span id="app-id-display"></span></p>
+            <p>用户 ID (用于数据隔离): <span id="user-id-display"></span></p>
+        </div>
+
+    </div>
+
+    <!-- Firebase SDKs and Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, query, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        // setLogLevel is not imported as it's not strictly necessary for deployment
+
+        // --- GLOBAL VARIABLES (Canvas Environment Placeholders) ---
+        // NOTE: When deploying to Vercel/GitHub, you MUST manually replace __app_id, __firebase_config,
+        // and __initial_auth_token with actual values or environment variables.
+        // For local testing, default values are used.
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-takeout-app';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        // Display IDs for debugging/sharing
+        document.getElementById('app-id-display').textContent = appId;
+
+        // --- FIREBASE INITIALIZATION ---
+        let app, db, auth, userId = null;
+        let allTakeouts = []; 
+        let filteredTakeouts = []; 
+
+        // DOM Elements
+        const addForm = document.getElementById('add-takeout-form');
+        const listContainer = document.getElementById('takeout-list');
+        const priceFilter = document.getElementById('price-filter');
+        const categoryFilter = document.getElementById('category-filter');
+        const randomPickBtn = document.getElementById('random-pick-btn');
+        const randomResult = document.getElementById('random-result');
+        const itemCountDisplay = document.getElementById('item-count');
+        const loadingIndicator = document.getElementById('loading-indicator');
+        const noDataMessage = document.getElementById('no-data-message');
+
+
+        /**
+         * Converts a Firestore timestamp object to a readable date string.
+         * @param {Object} timestamp - Firestore Timestamp object.
+         * @returns {string} Formatted date string.
+         */
+        const formatDate = (timestamp) => {
+            if (!timestamp || !timestamp.toDate) return '未知日期';
+            const date = timestamp.toDate();
+            return date.toLocaleDateString('zh-CN', {
+                year: 'numeric',
+                month: 'numeric',
+                day: 'numeric'
+            });
+        };
+
+        /**
+         * Renders the list of takeout entries to the UI.
+         * @param {Array<Object>} items - The list of items to render.
+         */
+        const renderList = (items) => {
+            listContainer.innerHTML = ''; // Clear previous items
+            
+            if (items.length === 0) {
+                listContainer.appendChild(noDataMessage);
+                noDataMessage.textContent = '没有找到符合条件的记录。';
+                noDataMessage.classList.remove('hidden');
+                itemCountDisplay.textContent = '0';
+                return;
+            }
+
+            // Hide message if there are items
+            noDataMessage.classList.add('hidden');
+
+            items.forEach(item => {
+                const itemEl = document.createElement('div');
+                // Use hover:bg-amber-50 for a thematic hover color
+                itemEl.className = 'flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 bg-white hover:bg-amber-50 rounded-lg transition-colors border border-gray-200';
+                
+                // Name and Category
+                const titleBlock = document.createElement('div');
+                titleBlock.className = 'mb-2 sm:mb-0';
+                titleBlock.innerHTML = `
+                    <p class="text-lg font-semibold text-gray-800">${item.name}</p>
+                    <p class="text-sm text-gray-500">种类: <span class="text-indigo-600 font-medium">${item.category}</span></p>
+                `;
+
+                // Price and Date
+                const infoBlock = document.createElement('div');
+                infoBlock.className = 'text-right';
+                infoBlock.innerHTML = `
+                    <p class="text-xl font-bold text-secondary-color">¥${item.price.toFixed(2)}</p>
+                    <p class="text-xs text-gray-400 mt-1">记录于: ${formatDate(item.timestamp)}</p>
+                `;
+
+                itemEl.appendChild(titleBlock);
+                itemEl.appendChild(infoBlock);
+                listContainer.appendChild(itemEl);
+            });
+            itemCountDisplay.textContent = items.length;
+        };
+        
+        /**
+         * Filters the main list based on current UI selections.
+         */
+        const applyFilters = () => {
+            if (!allTakeouts.length) {
+                filteredTakeouts = [];
+                renderList(filteredTakeouts);
+                return;
+            }
+
+            const priceVal = priceFilter.value;
+            const categoryVal = categoryFilter.value;
+
+            filteredTakeouts = allTakeouts.filter(item => {
+                // Price Filter Logic
+                let priceMatch = true;
+                const price = parseFloat(item.price);
+                if (priceVal === 'around20') {
+                    priceMatch = (price >= 15 && price <= 25);
+                } else if (priceVal === 'cheap') {
+                    priceMatch = (price <= 15);
+                } else if (priceVal === 'expensive') {
+                    priceMatch = (price >= 25);
+                }
+                
+                // Category Filter Logic
+                let categoryMatch = true;
+                if (categoryVal !== 'all') {
+                    // Case-insensitive, partial match 
+                    categoryMatch = item.category && item.category.toLowerCase().includes(categoryVal.toLowerCase());
+                }
+
+                return priceMatch && categoryMatch;
+            });
+
+            renderList(filteredTakeouts);
+        };
+        
+        /**
+         * Populates the category filter dropdown with unique categories.
+         */
+        const populateCategoryFilter = () => {
+            const categories = new Set();
+            allTakeouts.forEach(item => {
+                // Handle categories that might be comma-separated by user
+                if (item.category) {
+                    item.category.split(',').forEach(cat => {
+                        const trimmedCat = cat.trim();
+                        if (trimmedCat) categories.add(trimmedCat);
+                    });
+                }
+            });
+
+            // Save current selection to restore it later
+            const currentCategory = categoryFilter.value;
+            
+            categoryFilter.innerHTML = '<option value="all">所有种类</option>';
+            [...categories].sort().forEach(cat => {
+                const option = document.createElement('option');
+                option.value = cat;
+                option.textContent = cat;
+                if (cat === currentCategory) {
+                    option.selected = true;
+                }
+                categoryFilter.appendChild(option);
+            });
+            
+            // Re-apply filters after population
+            applyFilters();
+        };
+
+        // --- FIREBASE DATA LISTENERS ---
+        const setupFirestoreListener = () => {
+            if (!db || !userId) return;
+
+            // Data storage path: /artifacts/{appId}/users/{userId}/takeout_log
+            const takeoutRef = collection(db, `/artifacts/${appId}/users/${userId}/takeout_log`);
+            const q = query(takeoutRef); 
+
+            // Real-time listener
+            onSnapshot(q, (snapshot) => {
+                loadingIndicator.classList.add('hidden');
+                const tempTakeouts = [];
+                snapshot.forEach(doc => {
+                    tempTakeouts.push({ id: doc.id, ...doc.data() });
+                });
+
+                // Sort by timestamp in descending order (newest first) in client
+                tempTakeouts.sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
+
+                allTakeouts = tempTakeouts;
+                populateCategoryFilter(); // Populates categories and applies filters
+            }, (error) => {
+                console.error("Error listening to Firestore: ", error);
+                loadingIndicator.textContent = '数据加载失败。请检查控制台错误。';
+            });
+        };
+
+        // --- AUTHENTICATION AND INITIALIZATION ---
+        const initializeAppAndAuth = async () => {
+            if (Object.keys(firebaseConfig).length === 0) {
+                 loadingIndicator.textContent = '错误: Firebase 配置未提供。';
+                 console.error("Firebase config is missing.");
+                 return;
+            }
+            
+            try {
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+
+                // Sign in with custom token if available, otherwise sign in anonymously
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    await signInAnonymously(auth);
+                }
+                
+                // Wait for auth state change to get the userId
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        document.getElementById('user-id-display').textContent = userId;
+                        setupFirestoreListener(); // Start listening to data
+                    } else {
+                        console.log("No user signed in.");
+                        loadingIndicator.textContent = '用户未认证。';
+                    }
+                });
+
+            } catch (error) {
+                console.error("Firebase initialization or authentication failed:", error);
+                loadingIndicator.textContent = `认证失败: ${error.message}`;
+            }
+        };
+
+        // --- EVENT HANDLERS ---
+        
+        // 1. Add Entry Handler
+        addForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (!userId || !db) {
+                console.error("Database or User ID is not ready.");
+                return;
+            }
+
+            const nameInput = document.getElementById('takeout-name');
+            const priceInput = document.getElementById('takeout-price');
+            const categoryInput = document.getElementById('takeout-category');
+
+            const newEntry = {
+                name: nameInput.value.trim(),
+                price: parseFloat(priceInput.value),
+                category: categoryInput.value.trim(),
+                timestamp: new Date(), 
+            };
+
+            const takeoutRef = collection(db, `/artifacts/${appId}/users/${userId}/takeout_log`);
+            
+            try {
+                await addDoc(takeoutRef, newEntry);
+                console.log("Document successfully written!");
+                // Clear the form fields after successful submission
+                nameInput.value = '';
+                priceInput.value = '';
+                categoryInput.value = '';
+            } catch (error) {
+                console.error("Error adding document: ", error);
+            }
+        });
+
+        // 2. Filter Handlers
+        priceFilter.addEventListener('change', applyFilters);
+        categoryFilter.addEventListener('change', applyFilters);
+
+        // 3. Random Selection Handler
+        randomPickBtn.addEventListener('click', () => {
+            if (filteredTakeouts.length === 0) {
+                randomResult.textContent = '😭 列表中没有零食可供选择！';
+                randomResult.classList.remove('bg-amber-50'); 
+                randomResult.classList.add('bg-red-100');
+                return;
+            }
+            
+            const randomIndex = Math.floor(Math.random() * filteredTakeouts.length);
+            const selectedItem = filteredTakeouts[randomIndex];
+
+            randomResult.classList.remove('bg-red-100');
+            randomResult.classList.add('bg-amber-50');
+
+            randomResult.textContent = '抽取中...';
+            randomPickBtn.disabled = true;
+
+            setTimeout(() => {
+                randomResult.innerHTML = `
+                    🎉 恭喜! 今天吃: <span class="text-primary-color">${selectedItem.name}</span>
+                    <span class="text-sm font-normal text-gray-600">(¥${selectedItem.price.toFixed(2)}, ${selectedItem.category})</span>
+                `;
+                randomPickBtn.disabled = false;
+            }, 500);
+        });
+
+
+        // --- START THE APP ---
+        window.onload = initializeAppAndAuth;
+
+    </script>
+</body>
+</html>
